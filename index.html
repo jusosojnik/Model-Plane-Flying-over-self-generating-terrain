@@ -1,0 +1,148 @@
+<head>
+    <script src="p5.js"></script>
+    <script src="p5.dom.js"></script>
+    <script src="https://freshfork.github.io/p5.EasyCam/p5.easycam.js"></script>
+</head>
+<body>
+<script>
+
+    var DIM = 32;
+    var startPos = 0;
+    var plane;
+    var terrain = [];
+    var mountainHeight = 14;
+    var terrainSize = 800;
+    var vertecies = [];
+    var yoff = 0;
+
+    function preload() {
+        plane = loadModel('models/plane.obj', true);
+    }
+
+    function drawPlane() {
+        scale(0.5);
+        lights();
+        // rotateX(frameCount * 0.05);
+        // rotateY(frameCount * 0.05);
+        ambientMaterial(50); // For effect
+        // fill(0);
+        translate(0, 300, 320);
+        model(plane);
+    }
+
+    function generateTerrain() {
+        for (var j = 0; j < DIM; j++) {
+            var row = []
+            for (var i = 0; i < DIM; i++) {
+                var x = map(i, 0, DIM, -1, 1);
+                var y = map(j, 0, DIM, -1, 1);
+                var z = 0;
+
+                row[i] = createVector(x, y, z);
+            }
+            terrain[j] = row;
+        }
+        
+        for (var j = 0; j < DIM; j++) {
+            var xoff = 0;
+            for (var i = 0; i < DIM; i++) {
+                terrain[j][i].z = map(noise(xoff, yoff), 0, 1, -1, 1) * mountainHeight;
+                xoff += 0.1;
+            }
+            yoff += 0.1;
+        }
+    }
+
+    function drawTerrain() {
+        rotateX(1.1);
+        // noFill();
+        fill(0, 80, 0);
+        stroke(255);
+        for (var i = 0; i < vertecies.length; i += 4) {
+            beginShape();
+            vertex(vertecies[i].x, vertecies[i].y, vertecies[i].z);
+            vertex(vertecies[i + 1].x, vertecies[i + 1].y, vertecies[i + 1].z);
+            vertex(vertecies[i + 2].x, vertecies[i + 2].y, vertecies[i + 2].z);
+            vertex(vertecies[i + 3].x, vertecies[i + 3].y, vertecies[i + 3].z);
+            endShape(CLOSE);
+        }
+    }
+
+    function createVertecies() {
+        var c = 0;
+        for (var j = 0; j < DIM; j++) {
+            for (var i = 0; i < DIM; i++)  {
+                if (i < DIM - 1 && j < DIM - 1) {
+                    x1 = terrain[j][i].x * terrainSize;
+                    y1 = terrain[j][i].y * terrainSize;
+                    z1 = terrain[j][i].z * mountainHeight;
+                    vertecies[c++] = createVector(x1, y1, z1);
+                    x1 = terrain[j][i + 1].x * terrainSize;
+                    y1 = terrain[j][i + 1].y * terrainSize;
+                    z1 = terrain[j][i + 1].z * mountainHeight;
+                    vertecies[c++] = createVector(x1, y1, z1);
+                    x1 = terrain[j + 1][i + 1].x * terrainSize;
+                    y1 = terrain[j + 1][i + 1].y * terrainSize;
+                    z1 = terrain[j + 1][i + 1].z * mountainHeight;
+                    vertecies[c++] = createVector(x1, y1, z1);
+                    x1 = terrain[j + 1][i].x * terrainSize;
+                    y1 = terrain[j + 1][i].y * terrainSize;
+                    z1 = terrain[j + 1][i].z * mountainHeight;
+                    vertecies[c++] = createVector(x1, y1, z1);
+                }
+            }
+        }
+    }
+
+    function updateTerrain() {
+        var newTerrain = [];
+        for (var j = 0; j < DIM; j++) {
+            if (j === 0) {
+                var row = [];
+                for (var i = 0; i < DIM; i++) {
+                    var x = map(i, 0, DIM, -1, 1);
+                    var y = map(j, 0, DIM, -1, 1);
+                    // var z = map(Math.floor(Math.random() * 11), 0, 10, -1, 1);
+                    var z = 0;
+
+                    row[i] = createVector(x, y, z);
+                }
+                newTerrain[j] = row;
+            } else {
+                var row = [];
+                for (var i = 0; i < DIM; i++) {
+                    var y = map(j, 0, DIM, -1, 1);
+
+                    row[i] = createVector(terrain[j - 1][i].x, y, terrain[j - 1][i].z);
+                }
+                newTerrain[j] = row;
+            }
+        }
+        terrain = newTerrain;
+        var xoff = 0;
+        for (var i = 0; i < DIM; i++) {
+            terrain[0][i].z = map(noise(xoff, yoff), 0, 1, -1, 1) * mountainHeight;
+            xoff += 0.1;
+        }
+        yoff += 0.1;
+    }
+
+    function setup() {
+        createCanvas(700, 700, WEBGL);
+        // orbitControl(5,5,5);
+        frameRate(30);
+        createEasyCam();
+        generateTerrain();
+    }
+
+    function draw() {
+        background(0);
+        createVertecies();
+        drawTerrain();
+        updateTerrain();
+        drawPlane();
+        // noLoop();
+    }
+
+</script>
+</body>
