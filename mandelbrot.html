@@ -1,0 +1,95 @@
+<head>
+    <script src="p5.js"></script>
+    <script src="p5.dom.js"></script>
+</head>
+<body>
+<script>
+
+
+    var canvasWidth = 800;
+    var canvasHeight = 800;
+    var zoom = 1;
+
+    var minslider = -4;
+    var maxslider = 4;
+
+    var minX = -4;
+    var maxX = 4;
+
+    var minY = -4;
+    var maxY = 4;
+
+
+    function setup() {
+        createCanvas(canvasWidth, canvasHeight);
+        pixelDensity(1);
+        frameRate(30);
+        drawSet();
+    }
+
+    function draw() {
+        // minslider = minslider + abs(minslider/10);
+        // maxslider = maxslider - abs(maxslider/10);
+        // drawSet()
+    }
+
+    function mouseReleased() {
+        var zoomX = (maxX - (minX + maxX)/2)/25;
+        var zoomY = (maxY - (minY + maxY)/2)/25;
+        var pX = map(mouseX, 0, width, minX, maxX);
+        var pY = map(mouseY, 0, height, minY, maxY);
+        minX = pX - abs(zoomX);
+        maxX = pX + abs(zoomX);
+        minY = pY - abs(zoomY);
+        maxY = pY + abs(zoomY);
+        drawSet();
+        zoom++;
+    }
+
+    function drawSet() {
+        var maxiterations = 50;
+        loadPixels();
+        for (var x = 0; x < width; x++) {
+            for (var y = 0; y < height; y++) {
+                var a = map(x, 0, width, minX, maxX);
+                var b = map(y, 0, height, minY, maxY);
+
+
+                var ca = a;
+                var cb = b;
+
+                var n = 0;
+
+                while (n < maxiterations) {
+                    var aa = a*a - b*b;
+                    var bb = 2 * a * b;
+                    a = aa + ca;
+                    b = bb + cb;
+
+                    if (abs(a + b) > 16) {
+                        break;
+                    }
+
+                    n++;
+                }
+
+                var bright = map(n, 0, maxiterations, 0, 1);
+                bright = map(sqrt(bright), 0, 1, 0, 255);
+
+                if (n == maxiterations) {
+                    bright = 0;
+                }
+
+                var pix = (x + y * width) * 4;
+                pixels[pix + 0] = bright;
+                pixels[pix + 1] = bright/Math.floor(Math.random() * 256);
+                pixels[pix + 2] = bright/Math.floor(Math.random() * 256);
+                pixels[pix + 3] = 255;
+
+            }
+        }
+        updatePixels();
+    }
+
+</script>
+</body>
